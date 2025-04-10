@@ -2,7 +2,7 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
+
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -38,6 +38,74 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.count += 1;
+        self.items.push(value);
+        self.heapify_up(self.count);
+    }
+
+    /// 上滤操作（从新添加元素开始向上调整）
+    fn heapify_up(&mut self, mut idx: usize) {
+        while idx > 1 {
+            let parent = self.parent_idx(idx);
+            match self.compare(idx, parent) {
+                true => {
+                    self.swap(idx, parent);
+                    idx = parent;
+                }
+                false => break,
+            }
+        }
+    }
+
+    /// 下滤操作（从指定位置开始向下调整）
+    fn heapify_down(&mut self, mut idx: usize) {
+        while self.has_children(idx) {
+            let child = self.select_child(idx);
+            match self.compare(child, idx) {
+                true => {  
+                    self.swap(child, idx);
+                    idx = child;
+                }
+                false => break,
+            }
+        }
+    }
+
+    /// 通用元素交换操作
+    #[inline]
+    fn swap(&mut self, i: usize, j: usize) {
+        self.items.swap(i, j);
+    }
+
+    /// 通用比较操作
+    #[inline]
+    fn compare(&self, i: usize, j: usize) -> bool {
+        let comparator = self.comparator;
+        comparator(&self.items[i], &self.items[j])
+    }
+
+    /// 子节点选择逻辑（原smallest_child_idx）
+    fn select_child(&self, idx: usize) -> usize {
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        
+        // 右子节点不存在时直接返回左子节点
+        if right > self.count {
+            return left;
+        }
+        
+        // 根据堆类型选择合适子节点
+        if self.compare(left, right) {
+            left
+        } else {
+            right
+        }
+    }
+
+    /// 更语义化的子节点存在判断
+    #[inline]
+    fn has_children(&self, idx: usize) -> bool {
+        self.left_child_idx(idx) <= self.count
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -54,11 +122,6 @@ where
 
     fn right_child_idx(&self, idx: usize) -> usize {
         self.left_child_idx(idx) + 1
-    }
-
-    fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
     }
 }
 
@@ -85,7 +148,18 @@ where
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+		if self.count == 0 {
+            return None;
+        }
+        
+        let result = self.items.swap_remove(1);
+        self.count -= 1;
+        
+        if self.count > 0 {
+            self.heapify_down(1);
+        }
+        
+        Some(result)
     }
 }
 

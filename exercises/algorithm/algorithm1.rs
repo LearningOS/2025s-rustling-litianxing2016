@@ -2,7 +2,7 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -70,13 +70,48 @@ impl<T> LinkedList<T> {
         }
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+    where
+        T: Ord,
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        let mut merged_list = LinkedList::new();
+    
+        // 获取两个链表的当前节点
+        let mut node_a = list_a.start;
+        let mut node_b = list_b.start;
+        
+        // 使用循环合并两个链表
+        loop {
+            match (node_a, node_b) {
+                (Some(a), Some(b)) => {
+                    // 比较两个节点的值
+                    if unsafe { a.as_ref().val <= b.as_ref().val } {
+                        // 将较小的节点添加到合并后的链表
+                        let next = unsafe { a.as_ref().next };
+                        merged_list.add(unsafe { Box::from_raw(a.as_ptr()).val });
+                        node_a = next;
+                    } else {
+                        let next = unsafe { b.as_ref().next };
+                        merged_list.add(unsafe { Box::from_raw(b.as_ptr()).val });
+                        node_b = next;
+                    }
+                },
+                (Some(a), None) => {
+                    // 只有list_a还有节点
+                    let next = unsafe { a.as_ref().next };
+                    merged_list.add(unsafe { Box::from_raw(a.as_ptr()).val });
+                    node_a = next;
+                },
+                (None, Some(b)) => {
+                    // 只有list_b还有节点
+                    let next = unsafe { b.as_ref().next };
+                    merged_list.add(unsafe { Box::from_raw(b.as_ptr()).val });
+                    node_b = next;
+                },
+                (None, None) => break, // 两个链表都处理完毕
+            }
         }
+        
+        merged_list
 	}
 }
 
